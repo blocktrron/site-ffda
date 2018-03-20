@@ -37,6 +37,7 @@ GLUON_FEATURES := \
 
 # Additional packages to install on every image
 GLUON_SITE_PACKAGES := \
+	ffda-domain-director \
 	iwinfo \
 	gluon-config-mode-domain-select \
 	gluon-ebtables-limit-arp \

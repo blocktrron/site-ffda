@@ -1,4 +1,5 @@
 GLUON_SITE_FEEDS='ffda'
 
-PACKAGES_FFDA_REPO=https://git.darmstadt.ccc.de/ffda/packages.git
-PACKAGES_FFDA_COMMIT=5c9103011d7006688a79a7024d44954d1c63162c
+PACKAGES_FFDA_REPO=https://github.com/blocktrron/ffda-packages.git
+PACKAGES_FFDA_COMMIT=369a04dcb93d6a418ce2f0bd37a942763d33ad1b
+PACKAGES_FFDA_BRANCH=director

@@ -1,5 +1,5 @@
 GLUON_SITE_FEEDS='ffda'
 
 PACKAGES_FFDA_REPO=https://github.com/blocktrron/ffda-packages.git
-PACKAGES_FFDA_COMMIT=0c9e0d12e9e968230fda26a8bdfb354179afe01c
+PACKAGES_FFDA_COMMIT=483b512c6f9f191fce7aabee7d2d7fefce7e1608
 PACKAGES_FFDA_BRANCH=director

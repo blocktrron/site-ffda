@@ -22,7 +22,6 @@ GLUON_FEATURES := \
 	autoupdater \
 	config-mode-domain-select \
 	config-mode-geo-location-osm \
-	config-mode-outdoor \
 	ebtables-filter-multicast \
 	ebtables-filter-ra-dhcp \
 	ebtables-limit-arp \
@@ -41,6 +40,7 @@ GLUON_FEATURES := \
 # Additional packages to install on every image
 GLUON_SITE_PACKAGES := \
 	ffda-domain-director \
+	gluon-web-ffda-domain-director \
 	ffda-migrate-update-branch \
 	ffda-update-stabilizer \
 	iwinfo \

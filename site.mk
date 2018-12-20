@@ -32,6 +32,7 @@ GLUON_FEATURES := \
 	radvd \
 	radv-filterd \
 	respondd \
+	scheduled-domain-switch \
 	status-page \
 	web-advanced \
 	web-ffda-domain-director \

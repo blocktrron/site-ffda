@@ -1,7 +1,7 @@
 {
     "gluon": {
-        "repository": "freifunk-gluon/gluon",
-        "commit": "1c76fcb58b83f5cda02d92b4658df8ccc9687a94"
+        "repository": "freifunk-darmstadt/gluon",
+        "commit": "291d0db29f56adc82dd3407e946cfb40a893a05f"
     },
     "container": {
         "version": "master"

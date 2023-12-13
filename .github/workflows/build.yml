@@ -216,7 +216,7 @@ jobs:
           make-target: update
 
       - name: Build
-        uses: freifunk-gluon/action-build@v1
+        uses: freifunk-gluon/action-build@3a48a4d
         id: build-gluon
         with:
           container-version: ${{ needs.build-meta.outputs.container-version }}
@@ -229,6 +229,7 @@ jobs:
           autoupdater-branch: |
             ${{ needs.build-meta.outputs.autoupdater-branch }}
           release: ${{ needs.build-meta.outputs.release-version }}
+          site-version: ${{ needs.build-meta.outputs.site-version }}
 
       - name: Pack and Upload build output
         uses: ./.github/actions/build-artifact

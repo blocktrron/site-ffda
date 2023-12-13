@@ -1,0 +1,80 @@
+# yamllint disable rule:line-length
+---
+name: "Update the Gluon base"
+
+# yamllint disable-line rule:truthy
+on:
+  workflow_dispatch:
+    inputs:
+      site-branch:
+        description: "Site branch to update"
+        required: true
+        default: "master"
+
+jobs:
+  update-gluon:
+    runs-on: ubuntu-latest
+    env:
+      GLUON_CHECKOUT_DIR: /tmp/gluon
+      COMMIT_MESSAGE_PATH: /tmp/commit-message.txt
+      BUILD_INFO: .github/build-info.json
+      BUILD_INFO_TMP: .github/build-info.json.tmp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.site-branch }}
+
+      - name: Clone Gluon
+        run: git clone https://github.com/freifunk-gluon/gluon.git /tmp/gluon
+
+      - name: Checkout Gluon branch
+        run: git -C $GLUON_CHECKOUT_DIR checkout "$(jq -r '.gluon.branch' $BUILD_INFO)"
+
+      - name: Get HEAD commit hash
+        id: head-hash
+        run: echo "hash=$(git -C $GLUON_CHECKOUT_DIR rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Get build-info.json commit hash
+        id: build-info-hash
+        run: echo "hash=$(jq -r '.gluon.commit' $BUILD_INFO)" >> "$GITHUB_OUTPUT"
+
+      - name: Update commit-hash
+        if: steps.head-hash.outputs.hash != steps.build-info-hash.outputs.hash
+        run: >-
+          jq --arg commit_hash "${{ steps.head-hash.outputs.hash }}"
+          --indent 4
+          '.gluon.commit = $commit_hash'
+          $BUILD_INFO > $BUILD_INFO_TMP
+
+      - name: Update build-info.json
+        if: steps.head-hash.outputs.hash != steps.build-info-hash.outputs.hash
+        run: mv $BUILD_INFO_TMP $BUILD_INFO
+
+      - name: Generate commit message
+        if: steps.head-hash.outputs.hash != steps.build-info-hash.outputs.hash
+        id: commit-message
+        run: |
+          echo "msg<<EOF" >> "$GITHUB_OUTPUT"
+          ./.github/bump-gluon-commit-message.sh $GLUON_CHECKOUT_DIR ${{ steps.build-info-hash.outputs.hash }} ${{ steps.head-hash.outputs.hash }} >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push changes
+        if: steps.head-hash.outputs.hash != steps.build-info-hash.outputs.hash
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: ${{ steps.commit-message.outputs.msg }}
+          commit_options: '--no-verify --signoff'
+          commit_user_name: David Bauer
+          commit_user_email: mail@david-bauer.net
+          branch: bump-gluon-${{ steps.build-info-hash.outputs.hash }}
+          create_branch: true
+
+      - name: Create pull request
+        run: >-
+          gh pr create
+          -B ${{ github.event.inputs.site-branch }}
+          -H bump-gluon-${{ steps.build-info-hash.outputs.hash }}
+          --fill
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

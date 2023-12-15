@@ -3,6 +3,8 @@ name: "Build Gluon images"
 
 # yamllint disable-line rule:truthy
 on:
+  pull_request:
+    types: [ labeled ]
   push:
   workflow_dispatch:
     inputs:
@@ -55,6 +57,10 @@ jobs:
       WORKFLOW_DISPATCH_TARGETS: ${{ github.event.inputs.targets }}
     runs-on: ubuntu-22.04
     name: Determine build-meta
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'build-test') ||
+      github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
@@ -75,6 +81,10 @@ jobs:
       targets: ${{ steps.get-targets.outputs.targets }}
     runs-on: ubuntu-22.04
     name: Get Gluon targets
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'build-test') ||
+      github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
@@ -97,6 +107,10 @@ jobs:
     needs: build-meta
     runs-on: ubuntu-22.04
     name: Build host-tools
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'build-test') ||
+      github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -165,12 +179,16 @@ jobs:
 
   build:
     needs: [targets, build-meta, host-tools]
-    if: ${{ needs.targets.outputs.targets != '[]' }}
     strategy:
       fail-fast: false
       matrix:
         target: ${{ fromJSON(needs.targets.outputs.targets) }}
     runs-on: ubuntu-22.04
+    if: >
+      (needs.targets.outputs.targets != '[]' &&
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'build-test') ||
+      github.event_name == 'push')
     steps:
       - uses: actions/checkout@v4
 
@@ -241,6 +259,10 @@ jobs:
   manifest:
     needs: [build, build-meta, targets]
     runs-on: ubuntu-22.04
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'build-test') ||
+      github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
@@ -352,7 +374,9 @@ jobs:
   deploy:
     needs: [build, build-meta, targets, manifest]
     runs-on: ubuntu-22.04
-    if: ${{ needs.build-meta.outputs.deploy != '0' }}
+    if: >
+      needs.build-meta.outputs.deploy != '0' &&
+      github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 
@@ -395,7 +419,9 @@ jobs:
   create-release:
     needs: [build, build-meta, targets, manifest]
     runs-on: ubuntu-22.04
-    if: ${{ needs.build-meta.outputs.create-release != '0' }}
+    if: >
+      needs.build-meta.outputs.create-release != '0' &&
+      github.event_name == 'push'
     permissions:
       contents: write
     steps:

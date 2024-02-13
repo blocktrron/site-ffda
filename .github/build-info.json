@@ -1,8 +1,8 @@
 {
     "gluon": {
         "repository": "freifunk-gluon/gluon",
-        "branch": "master",
-        "commit": "f3a2bcd166bd70d6b0dbd5720dad2c7c85a79104"
+        "branch": "remove-ujail",
+        "commit": "e2bf730009a4be3c4f9226bb95698a8cbda90fad"
     },
     "container": {
         "version": "master"

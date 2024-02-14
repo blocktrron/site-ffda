@@ -2,7 +2,7 @@
     "gluon": {
         "repository": "blocktrron/gluon",
         "branch": "mt76-stop-tx-on-ba",
-        "commit": "cd9aa14c006160bea053709315a011d129c56d2c"
+        "commit": "e7797f0979047cca5da48ffdd08dcdae8b18d2df"
     },
     "container": {
         "version": "master"

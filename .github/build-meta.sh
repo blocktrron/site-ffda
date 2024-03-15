@@ -58,8 +58,13 @@ CONTAINER_VERSION="$(jq -r -e .container.version "$SCRIPT_DIR/build-info.json")"
 DEFAULT_RELEASE_VERSION="$(make --no-print-directory -C "$SCRIPT_DIR/.." -f ci-build.mk version)"
 DEFAULT_RELEASE_VERSION="$DEFAULT_RELEASE_VERSION-$GIT_SHORT_HASH"
 
-# Create site-version from site.mk
-SITE_VERSION="$(make --no-print-directory -C "$SCRIPT_DIR/.." -f ci-build.mk site-version)"
+if [ "$GITHUB_EVENT_NAME" = "push"  ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
+	# Get site-version from tag
+	SITE_VERSION="$(echo "$GITHUB_REF_NAME" | tr '-' '~')"
+else
+	# Create site-version from site.mk
+	SITE_VERSION="$(make --no-print-directory -C "$SCRIPT_DIR/.." -f ci-build.mk site-version)"
+fi
 SITE_VERSION="$SITE_VERSION-ffda-$GIT_COMMIT_DATE-$GIT_SHORT_HASH"
 
 # Enable Manifest generation conditionally

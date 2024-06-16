@@ -1,8 +1,8 @@
 {
     "gluon": {
-        "repository": "freifunk-gluon/gluon",
-        "branch": "main",
-        "commit": "d1ec30ba060174b8d3c0a91beb347343ad404c12"
+        "repository": "blocktrron/gluon",
+        "branch": "pr-mt7612-stuck-clients-master",
+        "commit": "d3c2b9363a64c70f3cabc3e2bbc50342737d4b40"
     },
     "container": {
         "version": "main"

@@ -2,7 +2,7 @@
     "gluon": {
         "repository": "blocktrron/gluon",
         "branch": "pr-mt7612-stuck-clients",
-        "commit": "df6619c1e9493c66cb070614c95aaaf8b86d8c033"
+        "commit": "df6619c1e9493c66cb070614c95aaaf8b86d8c03"
     },
     "container": {
         "version": "v2023.2.1"

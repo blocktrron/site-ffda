@@ -2,7 +2,7 @@
     "gluon": {
         "repository": "blocktrron/gluon",
         "branch": "hostapd-ds-params",
-        "commit": "7025f3e0ca760508763c7a30f3c96b566a4e9252"
+        "commit": "a3486b91a9eec3cc35d39513003659db8adec5ff"
     },
     "container": {
         "version": "main"

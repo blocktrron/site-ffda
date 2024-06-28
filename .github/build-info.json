@@ -1,8 +1,8 @@
 {
     "gluon": {
-        "repository": "freifunk-gluon/gluon",
+        "repository": "blocktrron/gluon",
         "branch": "mt7603-leaks",
-        "commit": "1cd430dfd7c7387355535acdfe81d7d52258180e"
+        "commit": "69e59ba88b2007009ea93af8df8878fb6c3f1100"
     },
     "container": {
         "version": "main"

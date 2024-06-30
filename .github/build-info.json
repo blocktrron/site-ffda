@@ -2,7 +2,7 @@
     "gluon": {
         "repository": "blocktrron/gluon",
         "branch": "mt7603-leaks",
-        "commit": "d7eef2aef02419fa6e2ec63fd7b07c3eee6c53c3"
+        "commit": "de4e554bfd160b10bf6388bac520fd7f59b760d3"
     },
     "container": {
         "version": "main"

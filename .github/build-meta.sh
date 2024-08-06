@@ -36,6 +36,8 @@ TESTING_TAG_RE="^[2-9].[0-9]-[0-9]{8}$"
 CUSTOM_TESTING_TAG_RE="^[2-9].[0-9]-[0-9]{8}"
 # Regex for release firmware tag
 RELEASE_TAG_RE="^[2-9].[0-9].[0-9]$"
+# Regex for release firmware tag
+RELEASE_DEPLOYMENT_TAG_RE="^[2-9].[0-9].[0-9]"
 
 # Get Gluon version information
 if [ -n "$WORKFLOW_DISPATCH_REPOSITORY" ] && [ -n "$WORKFLOW_DISPATCH_REFERENCE" ]; then
@@ -113,6 +115,14 @@ elif [ "$GITHUB_EVENT_NAME" = "push"  ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
 		RELEASE_VERSION="$GITHUB_REF_NAME"
 		BROKEN="0"
 		DEPLOY="1"
+	elif [[ "$GITHUB_REF_NAME" =~ $RELEASE_DEPLOYMENT_TAG_RE ]]; then
+		# Deployment release - autoupdater Branch is stable and enabled
+		AUTOUPDATER_ENABLED="1"
+		AUTOUPDATER_BRANCH="stable"
+
+		RELEASE_VERSION="$GITHUB_REF_NAME"
+		BROKEN="1"
+		DEPLOY="0"
 	else
 		# Unknown release - Disable autoupdater
 		AUTOUPDATER_ENABLED="0"

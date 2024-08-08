@@ -546,9 +546,14 @@ jobs:
             gluon-gha-data/release-artifacts/*
 
       - name: Create GitHub Release
+        id: create-release
         uses: softprops/action-gh-release@v2
         with:
           body_path: gluon-gha-data/release-notes.md
           make_latest: ${{ needs.build-meta.outputs.latest-release == '1' }}
           files: |
             gluon-gha-data/release-artifacts/*
+
+      - name: Create Release Notice
+        run: |
+          echo "::notice::Release created at ${{ steps.create-release.outputs.url }}"

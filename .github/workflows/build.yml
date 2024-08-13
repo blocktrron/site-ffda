@@ -255,13 +255,14 @@ jobs:
 
       - name: Build
         # yamllint disable-line rule:line-length
-        uses: freifunk-gluon/action-build@3a48a4d0db08ff393e08ec3074f1b218ee5ac54b
+        uses: blocktrron/action-build@743357b82f37492beea0ef6aeb8fe1ec78261aea
         id: build-gluon
         with:
           container-version: ${{ needs.build-meta.outputs.container-version }}
           gluon-path: "gluon-gha-data/gluon"
           hardware-target: ${{ matrix.target }}
           broken: ${{ needs.build-meta.outputs.broken }}
+          build-nonshared: "0"
           deprecated: "0"
           autoupdater-enabled: |
             ${{ needs.build-meta.outputs.autoupdater-enabled }}

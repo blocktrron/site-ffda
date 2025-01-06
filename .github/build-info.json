@@ -2,7 +2,7 @@
     "gluon": {
         "repository": "blocktrron/gluon",
         "branch": "upstream-main-updates",
-        "commit": "cca7e92b41b874a2b9763fa86166ec5928a6bea8"
+        "commit": "0e8e6b074218f56e9fbaaf9f986bab01c5339969"
     },
     "container": {
         "version": "main"

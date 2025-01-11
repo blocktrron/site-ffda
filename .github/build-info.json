@@ -2,7 +2,7 @@
     "gluon": {
         "repository": "blocktrron/gluon",
         "branch": "mt7915-disable-mu",
-        "commit": "c1e7dcfde29d703bd9c508f1df208d5db819bbae"
+        "commit": "77f4a8c5a8bef85dfa9c4afad44ce35d11c60c49"
     },
     "container": {
         "version": "main"

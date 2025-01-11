@@ -1,8 +1,8 @@
 {
     "gluon": {
         "repository": "blocktrron/gluon",
-        "branch": "upstream-main-updates",
-        "commit": "00f7355883a4b652e126db69a8abd924b42c9490"
+        "branch": "mt7915-disable-mu",
+        "commit": "c1e7dcfde29d703bd9c508f1df208d5db819bbae"
     },
     "container": {
         "version": "main"

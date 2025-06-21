@@ -279,6 +279,9 @@ jobs:
           release: ${{ needs.build-meta.outputs.release-version }}
           site-version: ${{ needs.build-meta.outputs.site-version }}
 
+      - name: Check output image size
+        run: ./gluon-gha-data/gluon/contrib/check-image-size.py --github-actions --overhead 256 gluon-gha-data/gluon/output/meta/openwrt-profiles/${{ matrix.target }}.json
+
       - name: Pack and Upload build output
         uses: ./.github/actions/build-artifact
         with:

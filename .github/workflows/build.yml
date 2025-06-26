@@ -280,6 +280,7 @@ jobs:
           site-version: ${{ needs.build-meta.outputs.site-version }}
 
       - name: Check output image size
+        # yamllint disable-line rule:line-length
         run: ./gluon-gha-data/gluon/contrib/check-image-size.py --github-actions --overhead 256 gluon-gha-data/gluon/output/meta/openwrt-profiles/${{ matrix.target }}.json
 
       - name: Pack and Upload build output

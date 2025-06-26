@@ -312,6 +312,32 @@ jobs:
       - name: All firmware builds succeded
         run: echo "All firmware builds succeded!"
 
+
+  aggregate-profile-json:
+    runs-on: ubuntu-22.04
+    needs: [build, build-meta, targets]
+    if: >
+      needs.targets.outputs.targets != '[]'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: "gluon-gha-data/gluon-output"
+
+      - name: Combine Build output
+        uses: ./.github/actions/build-combine
+        with:
+          artifact-dir: "gluon-gha-data/gluon-output"
+          output-dir: "gluon-gha-data/gluon/output"
+          targets: ${{ needs.targets.outputs.targets }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: profile-json
+          path: gluon-gha-data/gluon/output/meta/openwrt-profiles
+
+
   manifest:
     needs: [build, build-meta, targets]
     runs-on: ubuntu-22.04

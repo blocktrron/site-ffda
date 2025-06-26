@@ -314,23 +314,6 @@ jobs:
         run: echo "All firmware builds succeded!"
 
 
-  image-size-report:
-    runs-on: ubuntu-22.04
-    needs: [build, build-meta, targets, aggregate-profile-json]
-    if: >
-      needs.targets.outputs.targets != '[]'
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: profile-json
-          path: gluon-gha-data/openwrt-profile-json
-
-      - name: Show profile JSON
-        run: cat gluon-gha-data/openwrt-profile-json/*.json
-
-
   aggregate-profile-json:
     runs-on: ubuntu-22.04
     needs: [build, build-meta, targets]
@@ -354,6 +337,23 @@ jobs:
         with:
           name: profile-json
           path: gluon-gha-data/gluon/output/meta/openwrt-profiles
+
+
+  image-size-report:
+    runs-on: ubuntu-22.04
+    needs: [build, build-meta, targets, aggregate-profile-json]
+    if: >
+      needs.targets.outputs.targets != '[]'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: profile-json
+          path: gluon-gha-data/openwrt-profile-json
+
+      - name: Show profile JSON
+        run: cat gluon-gha-data/openwrt-profile-json/*.json
 
 
   manifest:

@@ -341,9 +341,7 @@ jobs:
 
   image-size-report:
     runs-on: ubuntu-22.04
-    needs: [build, build-meta, targets, aggregate-profile-json]
-    if: >
-      needs.targets.outputs.targets != '[]'
+    needs: [aggregate-profile-json]
     steps:
       - uses: actions/checkout@v4
 

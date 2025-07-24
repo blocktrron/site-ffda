@@ -3,6 +3,6 @@ GLUON_SITE_FEEDS='ffda community'
 PACKAGES_FFDA_REPO=https://git.darmstadt.ccc.de/ffda/firmware/packages.git
 PACKAGES_FFDA_COMMIT=fb22679e053925b2838469046107dafcfe89e53a
 
-PACKAGES_COMMUNITY_REPO=https://github.com/freifunk-gluon/community-packages.git
-PACKAGES_COMMUNITY_BRANCH=master
-PACKAGES_COMMUNITY_COMMIT=d839133ea16174cc5cfeff3e7cae062979dae3be
+PACKAGES_COMMUNITY_REPO=https://github.com/blocktrron/community-packages.git
+PACKAGES_COMMUNITY_BRANCH=pr-outdoor-mesh
+PACKAGES_COMMUNITY_COMMIT=c81c44506008684512e37ab70fa6f90eff08d613

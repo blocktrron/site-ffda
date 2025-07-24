@@ -41,6 +41,7 @@ end
 if not device_class('tiny') then
 	packages({
 		'ffda-gluon-usteer'
+		'ffda-outdoor-mesh'
 	})
 
 	features({

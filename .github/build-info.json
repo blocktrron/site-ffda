@@ -2,7 +2,7 @@
     "gluon": {
         "repository": "blocktrron/gluon",
         "branch": "main",
-        "commit": "fab694e3fbd7f8e2d7aa1733b6d00376c01d81be"
+        "commit": "5e5ae5cf7df8e9f5a5ce723c7620d9bb7dfe10a7"
     },
     "container": {
         "version": "main"

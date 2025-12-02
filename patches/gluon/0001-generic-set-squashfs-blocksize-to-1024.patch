@@ -1,0 +1,25 @@
+From bb3a8dada20bb16ce9f10014189b7e81c1e88da7 Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Tue, 2 Dec 2025 19:49:31 +0100
+Subject: [PATCH] generic: set squashfs blocksize to 1024
+
+---
+ targets/generic | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/targets/generic b/targets/generic
+index d7c4383c..a2fca124 100644
+--- a/targets/generic
++++ b/targets/generic
+@@ -56,7 +56,7 @@ try_config('PACKAGE_dnsmasq_full_noid', false)
+ try_config('PACKAGE_dnsmasq_full_broken_rtc', false)
+ try_config('PACKAGE_dnsmasq_full_rtc', false)
+ 
+-try_config('TARGET_SQUASHFS_BLOCK_SIZE', 256)
++try_config('TARGET_SQUASHFS_BLOCK_SIZE', 1024)
+ 
+ -- OpenWrt disables ed25519 keys on SMALL_FLASH targets
+ -- (e.g. ramips-mt76x8) by default.
+-- 
+2.51.0
+

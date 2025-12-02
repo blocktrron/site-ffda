@@ -1,0 +1,24 @@
+From 554b99cae2034af6b453902df82babbd1249a9cc Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Tue, 2 Dec 2025 19:45:22 +0100
+Subject: [PATCH] generic: disable kernel MPTCP support
+
+---
+ targets/generic | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/targets/generic b/targets/generic
+index 5aad7e67..d7c4383c 100644
+--- a/targets/generic
++++ b/targets/generic
+@@ -74,6 +74,7 @@ config('KERNEL_NAMESPACES', true)
+ config('KERNEL_IP_MROUTE', false)
+ config('KERNEL_IPV6_MROUTE', false)
+ config('KERNEL_IPV6_SEG6_LWTUNNEL', false)
++config('KERNEL_MPTCP', false)
+ config('KERNEL_SWAP', false)
+ config('USE_SECCOMP', false)
+ config('KERNEL_SECCOMP', false)
+-- 
+2.51.0
+

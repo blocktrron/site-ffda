@@ -1,0 +1,140 @@
+From fc43d6629946324def338ccba7b2b851b1cd3251 Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Wed, 10 Dec 2025 15:19:25 +0100
+Subject: [PATCH] wifi: mt76: mt7915: recover beacon queue
+
+---
+ ...ifi-mt76-mt7915-recover-beacon-queue.patch | 121 ++++++++++++++++++
+ 1 file changed, 121 insertions(+)
+ create mode 100644 patches/openwrt/0014-wifi-mt76-mt7915-recover-beacon-queue.patch
+
+diff --git a/patches/openwrt/0014-wifi-mt76-mt7915-recover-beacon-queue.patch b/patches/openwrt/0014-wifi-mt76-mt7915-recover-beacon-queue.patch
+new file mode 100644
+index 00000000..1b46d0f1
+--- /dev/null
++++ b/patches/openwrt/0014-wifi-mt76-mt7915-recover-beacon-queue.patch
+@@ -0,0 +1,121 @@
++From: David Bauer <mail@david-bauer.net>
++Date: Wed, 10 Dec 2025 15:18:41 +0100
++Subject: wifi: mt76: mt7915: recover beacon queue
++
++diff --git a/package/kernel/mt76/patches/460-wifi-mt76-mt7915-recover-beacon-queue.patch b/package/kernel/mt76/patches/460-wifi-mt76-mt7915-recover-beacon-queue.patch
++new file mode 100644
++index 0000000000000000000000000000000000000000..7c0115f0361ce35bd494d895a55b7ce2e9660790
++--- /dev/null
+++++ b/package/kernel/mt76/patches/460-wifi-mt76-mt7915-recover-beacon-queue.patch
++@@ -0,0 +1,111 @@
+++From 4ad24cbcfe49f2500634cef719e9924a7106e64f Mon Sep 17 00:00:00 2001
+++From: David Bauer <mail@david-bauer.net>
+++Date: Wed, 10 Dec 2025 15:14:02 +0100
+++Subject: [PATCH] wifi: mt76: mt7915: recover beacon queue
+++
+++---
+++ mt7915/mac.c    | 66 +++++++++++++++++++++++++++++++++++++++++++++++++
+++ mt7915/mt7915.h |  3 +++
+++ 2 files changed, 69 insertions(+)
+++
+++diff --git a/mt7915/mac.c b/mt7915/mac.c
+++index 7f757654..d22af107 100644
+++--- a/mt7915/mac.c
++++++ b/mt7915/mac.c
+++@@ -1994,6 +1994,67 @@ void mt7915_mac_sta_rc_work(struct work_struct *work)
+++ 	spin_unlock_bh(&dev->mt76.sta_poll_lock);
+++ }
+++ 
++++struct mt7915_beacon_check_data {
++++	struct mt7915_phy *phy;
++++	bool beacon_set;
++++};
++++
++++static void mt7915_mac_beacon_recovery_check_iface(void *data, u8 *mac,
++++						   struct ieee80211_vif *vif)
++++{
++++	struct mt7915_vif *mvif = (struct mt7915_vif *)vif->drv_priv;
++++	struct mt7915_beacon_check_data *beacon_data = data;
++++
++++	if (beacon_data->phy != mvif->phy)
++++		return;
++++
++++	if (!vif->bss_conf.enable_beacon)
++++		return;
++++
++++	beacon_data->beacon_set = true;
++++}
++++
++++static void mt7915_mac_beacon_recovery(struct mt7915_phy *phy)
++++{
++++	struct mt7915_beacon_check_data beacon_data;
++++	struct mt7915_dev *dev = phy->dev;
++++	bool ext_phy = phy != &dev->phy;
++++	u32 q_idx, val;
++++
++++	beacon_data.phy = phy;
++++	beacon_data.beacon_set = false;
++++
++++	val = mt76_rr(dev, MT_FL_Q_EMPTY);
++++	q_idx = ext_phy ? 14 : 10;
++++
++++	if (!(val & BIT(q_idx)))
++++		goto exit_success;
++++
++++	ieee80211_iterate_active_interfaces(dev->mt76.hw,
++++		IEEE80211_IFACE_ITER_ACTIVE,
++++		mt7915_mac_beacon_recovery_check_iface, &beacon_data);
++++
++++	if (!beacon_data.beacon_set)
++++		goto exit_success;
++++
++++	if (++phy->beacon_recovery_count == 10) {
++++		phy->beacon_recovery_count = 0;
++++		dev_warn(dev->mt76.dev, "Warning: Device stopped beaconing! q_empty=%x\n", val);
++++
++++		if (!test_and_set_bit(MT76_MCU_RESET, &dev->mphy.state)) {
++++			dev->recovery.restart = true;
++++			wake_up(&dev->mt76.mcu.wait);
++++			queue_work(dev->mt76.wq, &dev->reset_work);
++++			wake_up(&dev->reset_wait);
++++		}
++++	}
++++
++++	return;
++++exit_success:
++++	phy->beacon_recovery_count = 0;
++++	return;
++++}
++++
+++ void mt7915_mac_work(struct work_struct *work)
+++ {
+++ 	struct mt7915_phy *phy;
+++@@ -2020,6 +2081,11 @@ void mt7915_mac_work(struct work_struct *work)
+++ 
+++ 	mt76_tx_status_check(mphy->dev, false);
+++ 
++++	if (++phy->beacon_recovery_interval == 5) {
++++		phy->beacon_recovery_interval = 0;
++++		mt7915_mac_beacon_recovery(phy);
++++	}
++++
+++ 	ieee80211_queue_delayed_work(mphy->hw, &mphy->mac_work,
+++ 				     MT7915_WATCHDOG_TIME);
+++ }
+++diff --git a/mt7915/mt7915.h b/mt7915/mt7915.h
+++index 640afc04..5ccb4090 100644
+++--- a/mt7915/mt7915.h
++++++ b/mt7915/mt7915.h
+++@@ -227,6 +227,9 @@ struct mt7915_phy {
+++ 	bool sku_limit_en:1;
+++ 	bool sku_path_en:1;
+++ 
++++	u32 beacon_recovery_interval;
++++	u32 beacon_recovery_count;
++++
+++ #ifdef CONFIG_NL80211_TESTMODE
+++ 	struct {
+++ 		u32 *reg_backup;
+++-- 
+++2.51.0
+++
+-- 
+2.51.0
+

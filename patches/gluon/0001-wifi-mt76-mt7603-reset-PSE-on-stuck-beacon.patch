@@ -1,0 +1,196 @@
+From 48aa39cbdb9b14635adca464edf7dfe6e607f45c Mon Sep 17 00:00:00 2001
+From: David Bauer <mail@david-bauer.net>
+Date: Sun, 8 Feb 2026 00:53:03 +0100
+Subject: [PATCH] wifi: mt76: mt7603: reset PSE on stuck beacon
+
+---
+ ...-reset-PSE-after-unsuccesful-attempt.patch | 177 ++++++++++++++++++
+ 1 file changed, 177 insertions(+)
+ create mode 100644 patches/openwrt/0014-wifi-mt76-mt7603-reset-PSE-after-unsuccesful-attempt.patch
+
+diff --git a/patches/openwrt/0014-wifi-mt76-mt7603-reset-PSE-after-unsuccesful-attempt.patch b/patches/openwrt/0014-wifi-mt76-mt7603-reset-PSE-after-unsuccesful-attempt.patch
+new file mode 100644
+index 00000000..94faebf4
+--- /dev/null
++++ b/patches/openwrt/0014-wifi-mt76-mt7603-reset-PSE-after-unsuccesful-attempt.patch
+@@ -0,0 +1,177 @@
++From: David Bauer <mail@david-bauer.net>
++Date: Sat, 14 Feb 2026 00:34:34 +0100
++Subject: wifi: mt76: mt7603: reset PSE after unsuccesful attempt
++
++diff --git a/package/kernel/mt76/patches/0001-wifi-mt76-mt7603-reset-PSE-on-stuck-HW-queue-redir.patch b/package/kernel/mt76/patches/0001-wifi-mt76-mt7603-reset-PSE-on-stuck-HW-queue-redir.patch
++new file mode 100644
++index 0000000000000000000000000000000000000000..8d8dc2bcddd047ce6be9ce617096921ef4522093
++--- /dev/null
+++++ b/package/kernel/mt76/patches/0001-wifi-mt76-mt7603-reset-PSE-on-stuck-HW-queue-redir.patch
++@@ -0,0 +1,95 @@
+++From 3781562ec7300d8fbd96536ae2a6d21f28de4485 Mon Sep 17 00:00:00 2001
+++From: David Bauer <mail@david-bauer.net>
+++Date: Thu, 12 Feb 2026 21:47:14 +0100
+++Subject: [PATCH 1/2] wifi: mt76: mt7603: reset PSE on stuck HW queue redir
+++
+++---
+++ mt7603/beacon.c  | 4 ++--
+++ mt7603/debugfs.c | 2 ++
+++ mt7603/mac.c     | 6 ++++++
+++ mt7603/mt7603.h  | 4 ++++
+++ 4 files changed, 14 insertions(+), 2 deletions(-)
+++
+++diff --git a/mt7603/beacon.c b/mt7603/beacon.c
+++index 300a7f9c..59208321 100644
+++--- a/mt7603/beacon.c
++++++ b/mt7603/beacon.c
+++@@ -55,14 +55,14 @@ mt7603_update_beacon_iter(void *priv, u8 *mac, struct ieee80211_vif *vif)
+++ 	mt76_wr(dev, MT_DMA_FQCR0, val |
+++ 		FIELD_PREP(MT_DMA_FQCR0_TARGET_QID, MT_TX_HW_QUEUE_BCN));
+++ 	if (!mt76_poll(dev, MT_DMA_FQCR0, MT_DMA_FQCR0_BUSY, 0, 5000)) {
+++-		dev->beacon_check = MT7603_WATCHDOG_TIMEOUT;
++++		dev->hw_bcn_hang_check = MT7603_WATCHDOG_TIMEOUT;
+++ 		goto out;
+++ 	}
+++ 
+++ 	mt76_wr(dev, MT_DMA_FQCR0, val |
+++ 		FIELD_PREP(MT_DMA_FQCR0_TARGET_QID, MT_TX_HW_QUEUE_BMC));
+++ 	if (!mt76_poll(dev, MT_DMA_FQCR0, MT_DMA_FQCR0_BUSY, 0, 5000)) {
+++-		dev->beacon_check = MT7603_WATCHDOG_TIMEOUT;
++++		dev->hw_bmc_hang_check = MT7603_WATCHDOG_TIMEOUT;
+++ 		goto out;
+++ 	}
+++ 
+++diff --git a/mt7603/debugfs.c b/mt7603/debugfs.c
+++index c891ad54..2ce8c245 100644
+++--- a/mt7603/debugfs.c
++++++ b/mt7603/debugfs.c
+++@@ -14,6 +14,8 @@ mt7603_reset_read(struct seq_file *s, void *data)
+++ 		[RESET_CAUSE_BEACON_STUCK] = "Beacon stuck",
+++ 		[RESET_CAUSE_MCU_HANG] = "MCU hang",
+++ 		[RESET_CAUSE_RESET_FAILED] = "PSE reset failed",
++++		[RESET_CAUSE_HW_BCN_HANG] = "HW beacon hang",
++++		[RESET_CAUSE_HW_BMC_HANG] = "HW multicast hang",
+++ 	};
+++ 	int i;
+++ 
+++diff --git a/mt7603/mac.c b/mt7603/mac.c
+++index d3110eeb..2d3f59b9 100644
+++--- a/mt7603/mac.c
++++++ b/mt7603/mac.c
+++@@ -1844,6 +1844,10 @@ void mt7603_mac_work(struct work_struct *work)
+++ 	if (mt7603_watchdog_check(dev, &dev->rx_pse_check,
+++ 				  RESET_CAUSE_RX_PSE_BUSY,
+++ 				  mt7603_rx_pse_busy) ||
++++		mt7603_watchdog_check(dev, &dev->hw_bcn_hang_check,
++++				  RESET_CAUSE_HW_BCN_HANG, NULL) ||
++++		mt7603_watchdog_check(dev, &dev->hw_bmc_hang_check,
++++				  RESET_CAUSE_HW_BMC_HANG, NULL) ||
+++ 	    mt7603_watchdog_check(dev, &dev->beacon_check,
+++ 				  RESET_CAUSE_BEACON_STUCK,
+++ 				  NULL) ||
+++@@ -1866,6 +1870,8 @@ void mt7603_mac_work(struct work_struct *work)
+++ 		dev->rx_dma_check = 0;
+++ 		dev->rx_pse_check = 0;
+++ 		dev->mcu_hang = 0;
++++		dev->hw_bcn_hang_check = 0;
++++		dev->hw_bmc_hang_check = 0;
+++ 		dev->rx_dma_idx = ~0;
+++ 		memset(dev->tx_dma_idx, 0xff, sizeof(dev->tx_dma_idx));
+++ 		reset = true;
+++diff --git a/mt7603/mt7603.h b/mt7603/mt7603.h
+++index 071bfab3..986ef796 100644
+++--- a/mt7603/mt7603.h
++++++ b/mt7603/mt7603.h
+++@@ -96,6 +96,8 @@ enum mt7603_reset_cause {
+++ 	RESET_CAUSE_RX_PSE_BUSY,
+++ 	RESET_CAUSE_MCU_HANG,
+++ 	RESET_CAUSE_RESET_FAILED,
++++	RESET_CAUSE_HW_BCN_HANG,
++++	RESET_CAUSE_HW_BMC_HANG,
+++ 	__RESET_CAUSE_MAX
+++ };
+++ 
+++@@ -141,6 +143,8 @@ struct mt7603_dev {
+++ 	u8 sensitivity_limit;
+++ 
+++ 	u8 beacon_check;
++++	u8 hw_bcn_hang_check;
++++	u8 hw_bmc_hang_check;
+++ 	u8 tx_hang_check;
+++ 	u8 tx_dma_check;
+++ 	u8 rx_dma_check;
+++-- 
+++2.51.0
+++
++diff --git a/package/kernel/mt76/patches/0002-wifi-mt76-mt7603-reset-PSE-after-unsuccesful-attempt.patch b/package/kernel/mt76/patches/0002-wifi-mt76-mt7603-reset-PSE-after-unsuccesful-attempt.patch
++new file mode 100644
++index 0000000000000000000000000000000000000000..adbb796cba317421e06e3ca9753377b66e44182b
++--- /dev/null
+++++ b/package/kernel/mt76/patches/0002-wifi-mt76-mt7603-reset-PSE-after-unsuccesful-attempt.patch
++@@ -0,0 +1,66 @@
+++From 381d6fd45faf5a2719783fdc337793b9cfb2a725 Mon Sep 17 00:00:00 2001
+++From: David Bauer <mail@david-bauer.net>
+++Date: Sat, 14 Feb 2026 00:33:37 +0100
+++Subject: [PATCH] wifi: mt76: mt7603: reset PSE after unsuccesful attempt
+++
+++---
+++ mt7603/beacon.c | 6 ++++--
+++ mt7603/mac.c    | 8 +++++++-
+++ mt7603/mt7603.h | 2 ++
+++ 3 files changed, 13 insertions(+), 3 deletions(-)
+++
+++diff --git a/mt7603/beacon.c b/mt7603/beacon.c
+++index 59208321..d148b793 100644
+++--- a/mt7603/beacon.c
++++++ b/mt7603/beacon.c
+++@@ -119,10 +119,12 @@ void mt7603_pre_tbtt_tasklet(struct tasklet_struct *t)
+++ 	mt76_queue_tx_cleanup(dev, dev->mphy.q_tx[MT_TXQ_CAB], false);
+++ 	mt76_queue_tx_cleanup(dev, dev->mphy.q_tx[MT_TXQ_BEACON], false);
+++ 
+++-	if (dev->mphy.q_tx[MT_TXQ_BEACON]->queued > 0)
++++	if (dev->mphy.q_tx[MT_TXQ_BEACON]->queued > 0) {
+++ 		dev->beacon_check++;
+++-	else
++++	} else {
++++		dev->last_successful_beacon_check = jiffies;
+++ 		dev->beacon_check = 0;
++++	}
+++ 	mt7603_mac_stuck_beacon_recovery(dev);
+++ 
+++ 	q = dev->mphy.q_tx[MT_TXQ_BEACON];
+++diff --git a/mt7603/mac.c b/mt7603/mac.c
+++index 2d3f59b9..f90baa2c 100644
+++--- a/mt7603/mac.c
++++++ b/mt7603/mac.c
+++@@ -1455,8 +1455,14 @@ static void mt7603_mac_watchdog_reset(struct mt7603_dev *dev)
+++ 	}
+++ 
+++ 	if (dev->reset_cause[RESET_CAUSE_RESET_FAILED] ||
+++-	    dev->cur_reset_cause == RESET_CAUSE_RX_PSE_BUSY)
++++	    dev->cur_reset_cause == RESET_CAUSE_RX_PSE_BUSY) {
+++ 		mt7603_pse_reset(dev);
++++	} else if (dev->reset_cause[RESET_CAUSE_BEACON_STUCK] &&
++++		   !time_is_after_jiffies(dev->last_successful_beacon_check + (10 * HZ))) {
++++		pr_warn("Beacon stuck detected, resetting PSE\n");
++++		dev->last_successful_beacon_check = jiffies;
++++		mt7603_pse_reset(dev);
++++	}
+++ 
+++ 	if (!dev->reset_cause[RESET_CAUSE_RESET_FAILED]) {
+++ 		mt7603_mac_dma_start(dev);
+++diff --git a/mt7603/mt7603.h b/mt7603/mt7603.h
+++index 986ef796..0cc44d70 100644
+++--- a/mt7603/mt7603.h
++++++ b/mt7603/mt7603.h
+++@@ -142,6 +142,8 @@ struct mt7603_dev {
+++ 	s8 sensitivity;
+++ 	u8 sensitivity_limit;
+++ 
++++	unsigned long last_successful_beacon_check;
++++
+++ 	u8 beacon_check;
+++ 	u8 hw_bcn_hang_check;
+++ 	u8 hw_bmc_hang_check;
+++-- 
+++2.51.0
+++
+-- 
+2.51.0
+

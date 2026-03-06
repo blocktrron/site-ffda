@@ -1,8 +1,8 @@
 {
     "gluon": {
-        "repository": "freifunk-gluon/gluon",
-        "branch": "v2023.2.x",
-        "commit": "b7f250df563e5ea16f3d92d900bd9853b3f21fa8"
+        "repository": "blocktrron/gluon",
+        "branch": "v2023.2.x-mt7915-psm-updates",
+        "commit": "f576304bd78214a4cbea2cdf8da7d25ff32589f5"
     },
     "container": {
         "version": "v2023.2.1"
